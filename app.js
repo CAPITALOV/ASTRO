@@ -258,14 +258,11 @@ async function calculateChartData(utc, lat, lon) {
 
 async function calculateChartFromJD(jd, lat, lon) {
   let flag = jplLoaded ? (swe.SEFLG_SWIEPH ?? 2) : (swe.SEFLG_MOSEPH ?? 4);
-  
-  // Сидерический зодиак
   const zodiacSys = document.getElementById('zodiac-system')?.value || 'T';
   if (zodiacSys === 'S') {
     try { if (swe.set_sid_mode) swe.set_sid_mode(1); } catch(_) {}
     flag |= (swe.SEFLG_SIDEREAL ?? 65536);
   }
-
   const planets = {};
   for (const { name, id, fallback } of PLANET_IDS) {
     const pc = swe[id] !== undefined ? swe[id] : fallback;
@@ -278,7 +275,6 @@ async function calculateChartFromJD(jd, lat, lon) {
     houses = swe.houses(jd, lat, lon, houseSys);
     if (houses && typeof houses.then === 'function') houses = await houses;
   } catch (e) { console.warn('[houses]', e); }
-
   let cusps = null;
   if (houses && houses.cusps) {
     const raw = houses.cusps, arr = Array.isArray(raw) ? raw : Array.from(raw);
@@ -343,6 +339,28 @@ async function calculateDavison(A, B, latA, lonA, latB, lonB) {
   const lonD = (lonA + lonB) / 2;
   const data = await calculateChartFromJD(jdD, latD, lonD);
   return { ...data, jd: jdD };
+}
+
+// ---------- Транзиты месяца (восстановлено!) ----------
+async function monthlyTransits(natal, startDate, days, lat, lon) {
+  const events = [];
+  const start = new Date(startDate);
+  const outer = ['Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  for (let d = 0; d < days; d += 5) {
+    const day = new Date(start.getTime() + d * 86400000);
+    const utc = { year: day.getUTCFullYear(), month: day.getUTCMonth() + 1, day: day.getUTCDate(), hour: 12, minute: 0 };
+    const tr = await calculateChartData(utc, lat, lon);
+    for (const p of outer) {
+      const h = houseOf(tr.planets[p][0], natal.cusps);
+      if (h) events.push({ date: day.toISOString().slice(0, 10), planet: p, house: h, sign: signOf(tr.planets[p][0]), theme: TRANSIT_THEMES[p] });
+    }
+  }
+  const seen = new Set();
+  return events.filter((e) => {
+    const key = `${e.planet}-${e.house}`;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  }).slice(0, 12);
 }
 
 // ---------- Геометрия и Аспекты ----------
@@ -421,7 +439,6 @@ function interpretToday(natal, transit, todayStr) {
   const moonH = houseOf(moonLon, natal.cusps);
   lines.push(`Транзитное Солнце в ${signOf(sunLon)} в ${sunH}-м натальном доме — фокус на: ${PLANET_IN_HOUSE.Sun[sunH - 1]}.`);
   lines.push(`Транзитная Луна в ${signOf(moonLon)} в ${moonH}-м натальном доме — эмоциональный фон: ${PLANET_IN_HOUSE.Moon[moonH - 1]}.`);
-  
   const aspSun = findAspects({Sun: [sunLon]}, natal.planets, ASPECT_RULES).slice(0, 3);
   if (aspSun.length) {
     lines.push(`Аспекты дня:`);
@@ -574,7 +591,7 @@ form.addEventListener('submit', async (e) => {
     const utcB = localToUTC(b.year, b.month, b.day, b.hour, b.minute, b.tz);
     const latB = Number(document.getElementById('birth-lat').value); const lonB = Number(document.getElementById('birth-lon').value);
     const natal = await calculateChartData(utcB, latB, lonB);
-    
+
     lastState = { mode: currentMode, birth: { date: document.getElementById('birth-date').value, time: document.getElementById('birth-time').value, tz: b.tz, lat: latB, lon: lonB }, chart: natal };
     saveHistory({ label: `${currentMode} · ${b.year}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`, date: new Date().toLocaleString('ru-RU'), birthDate: document.getElementById('birth-date').value, birthTime: document.getElementById('birth-time').value, birthTz: b.tz, birthLat: latB, birthLon: lonB });
 
@@ -645,14 +662,5 @@ form.addEventListener('submit', async (e) => {
     }
   } catch (err) { console.error(err); setStatus(err.message || 'Ошибка.', true); } finally { submitBtn.disabled = false; }
 });
-
-// ---------- Восстановление из query ----------
-function restoreFromQuery() {
-  const p = new URLSearchParams(location.search); if (!p.has('date')) return;
-  document.getElementById('birth-date').value = p.get('date') || ''; document.getElementById('birth-time').value = p.get('time') || '';
-  if (p.get('tz')) document.getElementById('birth-timezone').value = p.get('tz');
-  document.getElementById('birth-lat').value = p.get('lat') || ''; document.getElementById('birth-lon').value = p.get('lon') || '';
-  const mode = p.get('mode'); if (mode) { const tab = Array.from(tabs).find((t) => t.dataset.mode === mode); if (tab) tab.click(); }
-}
 
 renderHistory(); restoreFromQuery();
