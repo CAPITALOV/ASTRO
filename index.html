@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="style.css?v=29" />
+  <link rel="stylesheet" href="style.css?v=30" />
   <title>Астрология — карты, хорар, транзиты</title>
 </head>
 <body>
   <header class="site-header">
     <div class="header-top">
       <h1>Астрология</h1>
-      <button type="button" id="theme-toggle" class="theme-btn" aria-label="Переключить тему">🌙</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="color" id="accent-color" value="#d4a017" style="width:32px;height:32px;border:none;border-radius:50%;background:none;cursor:pointer;" title="Акцентный цвет" />
+        <button type="button" id="theme-toggle" class="theme-btn" aria-label="Переключить тему">🌙</button>
+      </div>
     </div>
-    <p class="subtitle">Swiss Ephemeris (JPL) · Натальная · Транзиты · Соляр · Синастрия · Прогрессии · Композит · Дирекции · Хорар</p>
+    <p class="subtitle">Swiss Ephemeris (JPL) · 12 методов · Профекции · Фирдарии · Дэвисон · Гороскоп на сегодня</p>
   </header>
 
   <main class="layout">
@@ -31,6 +34,9 @@
         <button type="button" class="tab" data-mode="directions">Дирекции</button>
         <button type="button" class="tab" data-mode="horary">Хорар</button>
         <button type="button" class="tab" data-mode="monthly">Транзиты месяца</button>
+        <button type="button" class="tab" data-mode="profection">Профекции</button>
+        <button type="button" class="tab" data-mode="firdaria">Фирдарии</button>
+        <button type="button" class="tab" data-mode="davison">Дэвисон</button>
       </div>
 
       <form id="birth-form">
@@ -43,18 +49,24 @@
         <label>Время <input type="time" id="birth-time" required value="14:30" /></label>
         <label>Часовой пояс <select id="birth-timezone"></select></label>
         
-        <label>Система домов
-          <select id="house-system">
-            <option value="P" selected>Плацидус (Placidus)</option>
-            <option value="K">Кох (Koch)</option>
-            <option value="W">Целые знаки (Whole Sign)</option>
-            <option value="R">Региомонтан (Regiomontanus)</option>
-            <option value="C">Кампанус (Campanus)</option>
-            <option value="E">Равные дома (Equal)</option>
-            <option value="A">Равнодомные от Asc (Equal Asc)</option>
-            <option value="M">Порфирий (Porphyry)</option>
-          </select>
-        </label>
+        <div class="row">
+          <label>Система домов
+            <select id="house-system">
+              <option value="P" selected>Плацидус</option>
+              <option value="K">Кох</option>
+              <option value="W">Целые знаки</option>
+              <option value="R">Региомонтан</option>
+              <option value="C">Кампанус</option>
+              <option value="E">Равные дома</option>
+            </select>
+          </label>
+          <label>Зодиак
+            <select id="zodiac-system">
+              <option value="T" selected>Тропический</option>
+              <option value="S">Сидерический (Лахири)</option>
+            </select>
+          </label>
+        </div>
 
         <div class="row">
           <label>Широта <input type="number" id="birth-lat" step="any" required value="55.7558" /></label>
@@ -84,26 +96,23 @@
 
         <div id="horary-section" class="hidden">
           <h3>Хорарный вопрос</h3>
-          <label>Формулировка
-            <input type="text" id="horary-question" placeholder="Например: «Стоит ли менять работу?»" />
-          </label>
+          <label>Формулировка <input type="text" id="horary-question" placeholder="Стоит ли менять работу?" /></label>
           <label>Дом вопроса
             <select id="horary-house">
-              <option value="1">1 — личность, здоровье</option>
-              <option value="2">2 — деньги, ресурсы</option>
-              <option value="3">3 — общение, поездки</option>
-              <option value="4">4 — дом, семья</option>
-              <option value="5">5 — дети, творчество</option>
-              <option value="6">6 — работа, здоровье</option>
-              <option value="7" selected>7 — партнёрство, брак</option>
-              <option value="8">8 — кризисы, чужие деньги</option>
-              <option value="9">9 — путешествия, образование</option>
-              <option value="10">10 — карьера, репутация</option>
-              <option value="11">11 — друзья, планы</option>
-              <option value="12">12 — тайны, враги</option>
+              <option value="1">1 — личность</option>
+              <option value="2">2 — деньги</option>
+              <option value="3">3 — общение</option>
+              <option value="4">4 — дом</option>
+              <option value="5">5 — дети</option>
+              <option value="6">6 — работа</option>
+              <option value="7" selected>7 — партнёрство</option>
+              <option value="8">8 — кризисы</option>
+              <option value="9">9 — путешествия</option>
+              <option value="10">10 — карьера</option>
+              <option value="11">11 — друзья</option>
+              <option value="12">12 — тайны</option>
             </select>
           </label>
-          <p class="hint">Хорар рассчитывается на момент нажатия «Рассчитать».</p>
         </div>
 
         <button type="submit" id="submit-btn">Рассчитать</button>
@@ -127,6 +136,7 @@
         <button type="button" id="download-svg" class="tool-btn">SVG</button>
         <button type="button" id="copy-link" class="tool-btn">Ссылка</button>
         <button type="button" id="export-pdf" class="tool-btn">PDF</button>
+        <button type="button" id="today-horoscope" class="tool-btn" style="background: var(--fill-secondary);">📅 На сегодня</button>
         <button type="button" id="ai-analysis" class="tool-btn" style="background: var(--accent); color: #111;">🤖 ИИ-разбор</button>
       </div>
       <div id="chart-container" class="chart-container">
@@ -147,7 +157,7 @@
   <div id="ai-modal" class="ai-modal hidden">
     <div class="ai-modal-content">
       <h3>Запрос для ИИ готов</h3>
-      <p class="hint">Промпт скопирован в буфер обмена. Откройте ChatGPT и вставьте его (<kbd>Ctrl+V</kbd> или долгое нажатие → «Вставить»).</p>
+      <p class="hint">Промпт скопирован в буфер обмена. Откройте ChatGPT и вставьте его (<kbd>Ctrl+V</kbd>).</p>
       <textarea id="ai-prompt-text" readonly></textarea>
       <div class="ai-modal-actions">
         <button type="button" id="ai-copy-again" class="tool-btn">Копировать ещё раз</button>
@@ -164,6 +174,6 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.0/dist/svg2pdf.umd.min.js"></script>
 
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js?v=30"></script>
 </body>
 </html>

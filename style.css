@@ -61,6 +61,7 @@ body {
   min-height: 100vh;
 }
 
+/* ---------- Header ---------- */
 .site-header {
   position: sticky;
   top: 0;
@@ -91,6 +92,8 @@ body {
   letter-spacing: -0.1px;
   line-height: 1.3;
 }
+
+/* Кнопка темы и выбор цвета */
 .theme-btn {
   flex-shrink: 0;
   width: 40px;
@@ -111,6 +114,27 @@ body {
   background: var(--fill-primary);
 }
 
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
+  border: 2px solid var(--separator);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  background: none;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* ---------- Layout ---------- */
 .layout {
   display: grid;
   grid-template-columns: 380px 1fr;
@@ -160,9 +184,10 @@ h3 {
 }
 h3:first-of-type { margin-top: 8px; }
 
+/* ---------- Вкладки (Сетка для 12 режимов) ---------- */
 .mode-tabs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   padding: 4px;
   background: var(--fill-secondary);
@@ -170,21 +195,22 @@ h3:first-of-type { margin-top: 8px; }
   margin-bottom: 16px;
 }
 .tab {
-  flex: 1 1 auto;
-  padding: 7px 12px;
+  padding: 8px 4px;
   border: none;
   border-radius: 7px;
   background: transparent;
   color: var(--text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.2px;
   cursor: pointer;
   white-space: nowrap;
   text-align: center;
-  min-width: 0;
   transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .tab:active { transform: scale(0.96); }
 .tab.active {
@@ -193,7 +219,14 @@ h3:first-of-type { margin-top: 8px; }
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
   font-weight: 600;
 }
+@media (max-width: 480px) {
+  .mode-tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .tab { font-size: 11px; padding: 8px 2px; }
+}
 
+/* ---------- Форма ---------- */
 label {
   display: block;
   margin-bottom: 12px;
@@ -252,6 +285,7 @@ select {
   line-height: 1.4;
 }
 
+/* ---------- Кнопки ---------- */
 button[type="submit"] {
   width: 100%;
   padding: 15px 20px;
@@ -329,6 +363,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
 .chart-container svg { max-width: 100%; height: auto; display: block; }
 .placeholder { color: var(--text-secondary); font-size: 14px; text-align: center; padding: 40px 16px; }
 
+/* ---------- Интерпретация ---------- */
 .interpretation {
   margin-top: 16px;
   padding: 14px;
@@ -350,6 +385,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
 .interpretation ul { padding-left: 20px; margin: 0; }
 .interpretation li { margin-bottom: 8px; color: var(--text); }
 
+/* ---------- История ---------- */
 .history-block {
   margin-top: 24px;
   padding-top: 16px;
@@ -404,6 +440,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
   font-size: 13px;
 }
 
+/* ---------- Подвал ---------- */
 .site-footer {
   text-align: center;
   padding: 24px 16px;
@@ -466,6 +503,7 @@ kbd {
   font-size: 0.9em;
 }
 
+/* ---------- Мобильная адаптация ---------- */
 @media (max-width: 480px) {
   body { font-size: 16px; }
   .site-header h1 { font-size: 20px; }
@@ -474,7 +512,6 @@ kbd {
   .chart-toolbar { gap: 6px; }
   .tool-btn { padding: 9px 10px; font-size: 13px; }
   .chart-container { min-height: 380px; }
-  .tab { font-size: 12px; padding: 6px 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
