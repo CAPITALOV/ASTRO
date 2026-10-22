@@ -1,6 +1,5 @@
 import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js';
 
-// ---------- Константы ----------
 const PLANET_IDS = [
   { name: 'Sun', id: 'SE_SUN', fallback: 0 }, { name: 'Moon', id: 'SE_MOON', fallback: 1 },
   { name: 'Mercury', id: 'SE_MERCURY', fallback: 2 }, { name: 'Venus', id: 'SE_VENUS', fallback: 3 },
@@ -55,13 +54,11 @@ const ASPECT_RULES = { conjunction:{ orb:6, label:'соединение' }, oppo
 const HOUSE_QUESTIONS = { 1:'личность',2:'деньги',3:'общение',4:'дом',5:'творчество',6:'работа',7:'партнёрство',8:'кризисы',9:'путешествия',10:'карьера',11:'друзья',12:'уединение' };
 const HOUSE_RULERS = { Овен:'Mars',Телец:'Venus',Близнецы:'Mercury',Рак:'Moon',Лев:'Sun',Дева:'Mercury',Весы:'Venus',Скорпион:'Mars',Стрелец:'Jupiter',Козерог:'Saturn',Водолей:'Saturn',Рыбы:'Jupiter' };
 
-// ---------- Состояние ----------
 let swe = null, engineInitPromise = null, jplLoaded = false, jplLoadPromise = null;
 let currentMode = 'natal', currentChartData = null, lastState = null;
 let citiesDatabase = null, citiesLoadPromise = null;
-let acgMap = null; // MapLibre map instance
+let acgMap = null;
 
-// ---------- DOM ----------
 const form = document.getElementById('birth-form');
 const statusEl = document.getElementById('status');
 const submitBtn = document.getElementById('submit-btn');
@@ -77,7 +74,6 @@ const tabs = document.querySelectorAll('.tab');
 const historyList = document.getElementById('history-list');
 const cityList = document.getElementById('city-list');
 
-// ---------- Тема и Цвет ----------
 const themeToggle = document.getElementById('theme-toggle');
 const savedTheme = localStorage.getItem('astro_theme');
 const initialTheme = (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
@@ -101,7 +97,6 @@ accentColorInput.addEventListener('input', (e) => {
   localStorage.setItem('astro_accent', e.target.value);
 });
 
-// ---------- Часовые пояса ----------
 function populateTimezones(sel) {
   if (!sel || sel.options.length > 1) return;
   const zones = (window.moment?.tz?.names?.() ?? []);
@@ -118,7 +113,6 @@ function populateTimezones(sel) {
 populateTimezones(document.getElementById('birth-timezone'));
 populateTimezones(document.getElementById('partner-timezone'));
 
-// ---------- Города ----------
 async function loadCities() {
   if (citiesDatabase) return citiesDatabase;
   if (citiesLoadPromise) return citiesLoadPromise;
@@ -164,7 +158,6 @@ async function autofillCity(cityId, latId, lonId, tzId) {
 document.getElementById('birth-city').addEventListener('change', () => autofillCity('birth-city', 'birth-lat', 'birth-lon', 'birth-timezone'));
 document.getElementById('partner-city').addEventListener('change', () => autofillCity('partner-city', 'partner-lat', 'partner-lon', 'partner-timezone'));
 
-// ---------- Переключение режимов ----------
 tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
     tabs.forEach((t) => t.classList.remove('active'));
@@ -181,7 +174,6 @@ tabs.forEach((tab) => {
   });
 });
 
-// ---------- Инициализация движка и JPL ----------
 async function initEngine() {
   if (engineInitPromise) return engineInitPromise;
   engineInitPromise = (async () => {
@@ -217,7 +209,6 @@ async function loadJPL() {
   return jplLoadPromise;
 }
 
-// ---------- Утилиты ----------
 function setStatus(msg, isError = false) { statusEl.textContent = msg; statusEl.classList.toggle('error', isError); }
 function localToUTC(y, m, d, h, min, tz) {
   const local = moment.tz({ year:y, month:m-1, day:d, hour:h, minute:min }, tz);
@@ -245,13 +236,29 @@ function extractLongitude(pos) {
   }
   return NaN;
 }
+function extractSpeed(pos) {
+  if (pos == null) return NaN;
+  if (isArrayLike(pos)) { const a = Array.from(pos); return a.length > 3 ? Number(a[3]) : NaN; }
+  if (typeof pos === 'object') {
+    for (const k of ['speed_longitude','speed_lon','speed','dsun','xx']) {
+      const v = pos[k];
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+      if (isArrayLike(v)) { const a = Array.from(v); if (a.length > 3 && Number.isFinite(Number(a[3]))) return Number(a[3]); }
+    }
+  }
+  return NaN;
+}
 async function calcPlanetLongitude(jd, pc, flag) {
   let pos = swe.calc_ut(jd, pc, flag);
   if (pos && typeof pos.then === 'function') pos = await pos;
   return extractLongitude(pos);
 }
+async function calcPlanetSpeed(jd, pc, flag) {
+  let pos = swe.calc_ut(jd, pc, flag);
+  if (pos && typeof pos.then === 'function') pos = await pos;
+  return extractSpeed(pos);
+}
 
-// ---------- Расчёт карты ----------
 async function calculateChartData(utc, lat, lon) {
   await initEngine(); await loadJPL();
   const jd = swe.julday(utc.year, utc.month, utc.day, utc.hour + utc.minute / 60);
@@ -287,7 +294,6 @@ async function calculateChartFromJD(jd, lat, lon) {
   return { planets, cusps, jd };
 }
 
-// ---------- Соляр ----------
 function findSolarReturnJD(natalSunLon, approxYear, month, day) {
   const target = ((natalSunLon % 360) + 360) % 360;
   let jd = swe.julday(approxYear, month, day, 12);
@@ -306,7 +312,6 @@ async function calculateSolarReturn(natal, approxYear, month, day, lat, lon) {
   return { ...data, moment: date };
 }
 
-// ---------- Прогрессии ----------
 async function calculateSecondaryProgression(natal, targetY, targetM, targetD, lat, lon, birthUTC) {
   await initEngine();
   const birth = new Date(Date.UTC(birthUTC.year, birthUTC.month - 1, birthUTC.day));
@@ -318,7 +323,6 @@ async function calculateSecondaryProgression(natal, targetY, targetM, targetD, l
   return { ...data, ageYears };
 }
 
-// ---------- Дирекции ----------
 function calculateSymbolicDirections(natal, targetY, targetM, targetD, birthUTC) {
   const birth = new Date(Date.UTC(birthUTC.year, birthUTC.month - 1, birthUTC.day));
   const target = new Date(Date.UTC(targetY, targetM - 1, targetD));
@@ -328,7 +332,6 @@ function calculateSymbolicDirections(natal, targetY, targetM, targetD, birthUTC)
   return { planets: directed, cusps: natal.cusps, ageYears, jd: natal.jd + ageYears };
 }
 
-// ---------- Композит и Дэвисон ----------
 function midpointLongitude(a, b) { let diff = b - a; while (diff > 180) diff -= 360; while (diff <= -180) diff += 360; return ((a + diff / 2) % 360 + 360) % 360; }
 function calculateComposite(A, B) {
   const planets = {}; for (const name of Object.keys(A.planets)) planets[name] = [midpointLongitude(A.planets[name][0], B.planets[name][0])];
@@ -343,7 +346,6 @@ async function calculateDavison(A, B, latA, lonA, latB, lonB) {
   return { ...data, jd: jdD };
 }
 
-// ---------- Транзиты месяца ----------
 async function monthlyTransits(natal, startDate, days, lat, lon) {
   const events = [];
   const start = new Date(startDate);
@@ -365,7 +367,6 @@ async function monthlyTransits(natal, startDate, days, lat, lon) {
   }).slice(0, 12);
 }
 
-// ---------- Геометрия и Аспекты ----------
 function signOf(lon) { return SIGNS[Math.floor((((lon % 360) + 360) % 360) / 30)]; }
 function houseOf(lon, cusps) {
   for (let i = 0; i < 12; i++) { const s = cusps[i], e = cusps[(i + 1) % 12]; if (s <= e ? (lon >= s && lon < e) : (lon >= s || lon < e)) return i + 1; }
@@ -385,7 +386,6 @@ function findAspects(A, B, rules) {
   return out;
 }
 
-// ---------- ИИ-Генерация ----------
 function generateAIPrompt(mode, data) {
   const lines = [];
   lines.push(`Представь, что ты — профессиональный астролог-исследователь, владеющий методами классической западной астрологии (Вронский, Лилли, Фроули). Напиши максимально подробный, глубокий и структурированный разбор астрологической карты.`);
@@ -418,7 +418,6 @@ document.getElementById('ai-copy-again').addEventListener('click', async () => {
 document.getElementById('ai-open-chatgpt').addEventListener('click', () => window.open('https://chatgpt.com/', '_blank'));
 document.getElementById('ai-close').addEventListener('click', () => document.getElementById('ai-modal').classList.add('hidden'));
 
-// ---------- Интерпретации на сайте ----------
 function interpretNatal(planets, cusps) {
   const lines = [];
   const sun = planets.Sun[0], moon = planets.Moon[0], asc = cusps[0];
@@ -435,17 +434,10 @@ function interpretNatal(planets, cusps) {
 
 function interpretToday(natal, transit, todayStr) {
   const lines = [`📅 Гороскоп на ${todayStr}:`];
-  const sunLon = transit.planets.Sun[0];
-  const moonLon = transit.planets.Moon[0];
-  const sunH = houseOf(sunLon, natal.cusps);
-  const moonH = houseOf(moonLon, natal.cusps);
+  const sunLon = transit.planets.Sun[0], moonLon = transit.planets.Moon[0];
+  const sunH = houseOf(sunLon, natal.cusps), moonH = houseOf(moonLon, natal.cusps);
   lines.push(`Транзитное Солнце в ${signOf(sunLon)} в ${sunH}-м натальном доме — фокус на: ${PLANET_IN_HOUSE.Sun[sunH - 1]}.`);
   lines.push(`Транзитная Луна в ${signOf(moonLon)} в ${moonH}-м натальном доме — эмоциональный фон: ${PLANET_IN_HOUSE.Moon[moonH - 1]}.`);
-  const aspSun = findAspects({Sun: [sunLon]}, natal.planets, ASPECT_RULES).slice(0, 3);
-  if (aspSun.length) {
-    lines.push(`Аспекты дня:`);
-    aspSun.forEach(a => lines.push(`• Солнце ${ASPECT_RULES[a.asp].label} натальный ${PLANET_RU[a.b]} (орбис ${a.orbit}°)`));
-  }
   return lines;
 }
 
@@ -492,8 +484,6 @@ function interpretFirdaria(natal, age) {
   return lines;
 }
 
-// ---------- Астрокатрография (ACG) ----------
-// Расчёт линий MC/IC/ASC/DSC для всех планет на основе экваториальных координат
 async function calculateAcgLines(natalData) {
   await initEngine();
   const jd = natalData.jd;
@@ -503,8 +493,6 @@ async function calculateAcgLines(natalData) {
     Mars: '#FF4500', Jupiter: '#FFA500', Saturn: '#8B4513',
     Uranus: '#00CED1', Neptune: '#4169E1', Pluto: '#800080'
   };
-
-  // Получаем GST (среднее звездное время) для юлианского дня
   let gst = 0;
   try {
     const gstResult = swe.sidtime(jd);
@@ -516,73 +504,29 @@ async function calculateAcgLines(natalData) {
     const flagEq = (jplLoaded ? (swe.SEFLG_SWIEPH ?? 2) : (swe.SEFLG_MOSEPH ?? 4)) | (swe.SEFLG_EQUATORIAL ?? 2048);
     let pos = swe.calc_ut(jd, pc, flagEq);
     if (pos && typeof pos.then === 'function') pos = await pos;
-
     let ra, dec;
-    if (Array.isArray(pos) || (pos && typeof pos.length === 'number')) {
-      ra = Number(pos[0]); // прямое восхождение в градусах
-      dec = Number(pos[1]); // склонение в градусах
-    } else if (pos && typeof pos === 'object') {
-      ra = Number(pos.longitude ?? pos.xx?.[0] ?? 0);
-      dec = Number(pos.latitude ?? pos.xx?.[1] ?? 0);
-    } else { continue; }
-
+    if (Array.isArray(pos) || (pos && typeof pos.length === 'number')) { ra = Number(pos[0]); dec = Number(pos[1]); }
+    else if (pos && typeof pos === 'object') { ra = Number(pos.longitude ?? pos.xx?.[0] ?? 0); dec = Number(pos.latitude ?? pos.xx?.[1] ?? 0); }
+    else { continue; }
     if (!Number.isFinite(ra) || !Number.isFinite(dec)) continue;
-
     const color = colors[name] || '#FFFFFF';
-
-    // Линия MC: долгота = RA - GST (нормализовать)
     let mcLon = ((ra - gst) % 360 + 360) % 360;
-    // Линия IC: противоположный меридиан
     let icLon = ((mcLon + 180) % 360 + 360) % 360;
-
-    // Добавляем MC/IC как вертикальные линии (2 точки: север и юг)
-    lines.push({
-      type: 'Feature',
-      properties: { planet: name, line: 'MC', color },
-      geometry: { type: 'LineString', coordinates: [[mcLon, 85], [mcLon, -85]] }
-    });
-    lines.push({
-      type: 'Feature',
-      properties: { planet: name, line: 'IC', color },
-      geometry: { type: 'LineString', coordinates: [[icLon, 85], [icLon, -85]] }
-    });
-
-    // Линии ASC/DSC: для набора широт вычисляем часовой угол
-    // cos(H) = -tan(lat) * tan(dec)
+    lines.push({ type: 'Feature', properties: { planet: name, line: 'MC', color }, geometry: { type: 'LineString', coordinates: [[mcLon, 85], [mcLon, -85]] } });
+    lines.push({ type: 'Feature', properties: { planet: name, line: 'IC', color }, geometry: { type: 'LineString', coordinates: [[icLon, 85], [icLon, -85]] } });
     const decRad = dec * Math.PI / 180;
     const tanDec = Math.tan(decRad);
-    const ascPoints = [];
-    const dscPoints = [];
-
+    const ascPoints = [], dscPoints = [];
     for (let lat = -80; lat <= 80; lat += 5) {
       const latRad = lat * Math.PI / 180;
       const cosH = -Math.tan(latRad) * tanDec;
-      if (Math.abs(cosH) > 1) continue; // нет восхода/заката на этой широте
-      const H = Math.acos(cosH) * 180 / Math.PI; // часовой угол в градусах
-
-      // ASC: долгота = RA - H - GST
-      let ascLon = ((ra - H - gst) % 360 + 360) % 360;
-      // DSC: долгота = RA + H - GST
-      let dscLon = ((ra + H - gst) % 360 + 360) % 360;
-
-      ascPoints.push([ascLon, lat]);
-      dscPoints.push([dscLon, lat]);
+      if (Math.abs(cosH) > 1) continue;
+      const H = Math.acos(cosH) * 180 / Math.PI;
+      ascPoints.push([((ra - H - gst) % 360 + 360) % 360, lat]);
+      dscPoints.push([((ra + H - gst) % 360 + 360) % 360, lat]);
     }
-
-    if (ascPoints.length > 1) {
-      lines.push({
-        type: 'Feature',
-        properties: { planet: name, line: 'ASC', color },
-        geometry: { type: 'LineString', coordinates: ascPoints }
-      });
-    }
-    if (dscPoints.length > 1) {
-      lines.push({
-        type: 'Feature',
-        properties: { planet: name, line: 'DSC', color },
-        geometry: { type: 'LineString', coordinates: dscPoints }
-      });
-    }
+    if (ascPoints.length > 1) lines.push({ type: 'Feature', properties: { planet: name, line: 'ASC', color }, geometry: { type: 'LineString', coordinates: ascPoints } });
+    if (dscPoints.length > 1) lines.push({ type: 'Feature', properties: { planet: name, line: 'DSC', color }, geometry: { type: 'LineString', coordinates: dscPoints } });
   }
   return lines;
 }
@@ -591,44 +535,31 @@ function initAcgMap() {
   if (acgMap) return;
   acgMap = new maplibregl.Map({
     container: 'acg-container',
-    style: 'https://demotiles.maplibre.org/style.json',
-    center: [0, 20],
-    zoom: 1.8,
+    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    center: [0, 20], zoom: 1.8, attributionControl: false
   });
+  acgMap.on('error', (e) => console.warn('[acg-map]', e));
 }
 
 async function renderAcg(natalData) {
   acgContainer.classList.remove('hidden');
   initAcgMap();
-
+  await new Promise(resolve => setTimeout(resolve, 100));
+  if (acgMap) acgMap.resize();
   const lines = await calculateAcgLines(natalData);
-
   const draw = () => {
     if (acgMap.getSource('acg-lines')) {
       acgMap.getSource('acg-lines').setData({ type: 'FeatureCollection', features: lines });
       return;
     }
-    acgMap.addSource('acg-lines', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: lines }
-    });
+    acgMap.addSource('acg-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: lines } });
     acgMap.addLayer({
-      id: 'acg-lines-layer',
-      type: 'line',
-      source: 'acg-lines',
+      id: 'acg-lines-layer', type: 'line', source: 'acg-lines',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: {
-        'line-color': ['get', 'color'],
-        'line-width': 1.8,
-        'line-opacity': 0.85,
-        'line-dasharray': [2, 1]
-      }
+      paint: { 'line-color': ['get', 'color'], 'line-width': 1.8, 'line-opacity': 0.85, 'line-dasharray': [2, 1] }
     });
   };
-
-  if (acgMap.loaded()) draw();
-  else acgMap.once('load', draw);
-
+  if (acgMap.loaded()) draw(); else acgMap.once('load', draw);
   showInterpretation('Астрокатрография', [
     'На карте показаны линии планет:',
     '• MC (зенит) и IC (надир) — вертикальные меридианы.',
@@ -637,7 +568,6 @@ async function renderAcg(natalData) {
   ]);
 }
 
-// ---------- Отрисовка ----------
 function createChart() {
   chartContainer.innerHTML = ''; const paper = document.createElement('div');
   paper.id = 'astrochart-paper'; paper.style.width = '100%'; paper.style.maxWidth = '720px'; chartContainer.appendChild(paper);
@@ -656,7 +586,6 @@ function renderBiWheel(base, overlay) {
 }
 function showInterpretation(title, lines) { interpretationEl.innerHTML = `<h3>${title}</h3><ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>`; interpretationEl.classList.remove('hidden'); }
 
-// ---------- История ----------
 function loadHistory() { try { return JSON.parse(localStorage.getItem('astro_history') || '[]'); } catch { return []; } }
 function saveHistory(entry) { const h = loadHistory(); h.unshift(entry); localStorage.setItem('astro_history', JSON.stringify(h.slice(0, 10))); renderHistory(); }
 function renderHistory() {
@@ -671,7 +600,6 @@ function renderHistory() {
   });
 }
 
-// ---------- Экспорт ----------
 document.getElementById('download-svg').addEventListener('click', () => {
   const svg = chartContainer.querySelector('svg'); if (!svg) return setStatus('Сначала карта.', true);
   const clone = svg.cloneNode(true); const styles = document.querySelector('style');
@@ -707,7 +635,6 @@ document.getElementById('export-json').addEventListener('click', () => { if (!la
 document.getElementById('import-json').addEventListener('click', () => document.getElementById('import-json-file').click());
 document.getElementById('import-json-file').addEventListener('change', (e) => { const f = e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (data.birth) { document.getElementById('birth-date').value = data.birth.date || ''; document.getElementById('birth-time').value = data.birth.time || ''; document.getElementById('birth-timezone').value = data.birth.tz || ''; document.getElementById('birth-lat').value = data.birth.lat || ''; document.getElementById('birth-lon').value = data.birth.lon || ''; } setStatus('JSON импортирован.'); } catch (err) { alert('Ошибка JSON'); } }; reader.readAsText(f); });
 
-// Кнопка "На сегодня"
 document.getElementById('today-horoscope').addEventListener('click', async () => {
   if (!lastState) return setStatus('Сначала постройте натальную карту.', true);
   const b = lastState.birth;
@@ -716,166 +643,115 @@ document.getElementById('today-horoscope').addEventListener('click', async () =>
   const utcNow = { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate(), hour: 12, minute: 0 };
   const transit = await calculateChartData(utcNow, b.lat, b.lon);
   const dateStr = now.toLocaleDateString('ru-RU');
-  const lines = interpretToday(natal, transit, dateStr);
-  showInterpretation('Гороскоп на сегодня', lines);
+  showInterpretation('Гороскоп на сегодня', interpretToday(natal, transit, dateStr));
 });
 
-// ---------- Луна без курса ----------
+// ---------- Луна без курса (v37) ----------
 async function checkMoonVoidOfCourse() {
   const widget = document.getElementById('moon-voc');
   const textEl = document.getElementById('moon-voc-text');
   if (!widget || !textEl) return;
 
-  const now = new Date();
-  const jd = swe.julday(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(), now.getUTCHours() + now.getUTCMinutes() / 60);
-  
-  const moonPos = swe.calc_ut(jd, swe.SE_MOON, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
-  const moonLon = moonPos[0];
-  const moonSign = Math.floor(moonLon / 30);
+  widget.style.display = 'flex';
+  widget.querySelector('.status-dot').style.background = '#30d158';
+  textEl.textContent = '🌙 Луна в движении';
 
-  let lastAspectJd = null;
-  let nextIngressJd = null;
-  const aspectAngles = [0, 60, 90, 120, 180];
-  const planets = [swe.SE_SUN, swe.SE_MERCURY, swe.SE_VENUS, swe.SE_MARS, swe.SE_JUPITER, swe.SE_SATURN];
+  try {
+    const now = new Date();
+    const jd = swe.julday(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(), now.getUTCHours() + now.getUTCMinutes() / 60);
+    const flag = (swe.SEFLG_SWIEPH ?? 2) | (swe.SEFLG_SPEED ?? 256);
+    const moonId = swe.SE_MOON ?? 1;
+    const moonLon = await calcPlanetLongitude(jd, moonId, flag);
+    if (!Number.isFinite(moonLon)) { console.warn('[moon-voc] Нет долготы Луны'); return; }
+    const moonSign = Math.floor(moonLon / 30);
+    console.log('[moon-voc] Moon lon =', moonLon.toFixed(4), 'sign =', moonSign);
 
-  for (let step = 0; step < 60; step++) {
-    const currentJd = jd + step / 24;
-    const currentMoon = swe.calc_ut(currentJd, swe.SE_MOON, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
-    const currentLon = currentMoon[0];
-    const currentSign = Math.floor(currentLon / 30);
+    let lastAspectJd = null, nextIngressJd = null;
+    const aspectAngles = [0, 60, 90, 120, 180];
+    const planets = [swe.SE_SUN ?? 0, swe.SE_MERCURY ?? 2, swe.SE_VENUS ?? 3, swe.SE_MARS ?? 4, swe.SE_JUPITER ?? 5, swe.SE_SATURN ?? 6];
 
-    if (currentSign !== moonSign) {
-      nextIngressJd = currentJd;
-      break;
-    }
-
-    for (const planet of planets) {
-      const planetPos = swe.calc_ut(currentJd, planet, swe.SEFLG_SWIEPH);
-      const planetLon = planetPos[0];
-      let diff = Math.abs(currentLon - planetLon) % 360;
-      if (diff > 180) diff = 360 - diff;
-
-      for (const angle of aspectAngles) {
-        if (Math.abs(diff - angle) < 0.5) {
-          lastAspectJd = currentJd;
-          break;
+    for (let step = 0; step < 60; step++) {
+      const currentJd = jd + step / 24;
+      const currentLon = await calcPlanetLongitude(currentJd, moonId, flag);
+      if (!Number.isFinite(currentLon)) continue;
+      if (Math.floor(currentLon / 30) !== moonSign) { nextIngressJd = currentJd; break; }
+      for (const planet of planets) {
+        const planetLon = await calcPlanetLongitude(currentJd, planet, (swe.SEFLG_SWIEPH ?? 2));
+        if (!Number.isFinite(planetLon)) continue;
+        let diff = Math.abs(currentLon - planetLon) % 360;
+        if (diff > 180) diff = 360 - diff;
+        for (const angle of aspectAngles) {
+          if (Math.abs(diff - angle) < 0.5) { lastAspectJd = currentJd; break; }
         }
+        if (lastAspectJd) break;
       }
-      if (lastAspectJd) break;
+      if (lastAspectJd && nextIngressJd) break;
     }
-    if (lastAspectJd && nextIngressJd) break;
-  }
 
-  if (lastAspectJd && nextIngressJd && lastAspectJd < jd && jd < nextIngressJd) {
-    const endDate = new Date((nextIngressJd - 2440587.5) * 86400000);
-    textEl.textContent = `Луна без курса до ${endDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
-    widget.querySelector('.status-dot').style.background = '#ff453a';
-    widget.style.display = 'flex';
-  } else {
-    widget.style.display = 'none';
-  }
+    console.log('[moon-voc] lastAspectJd =', lastAspectJd, 'nextIngressJd =', nextIngressJd);
+    if (lastAspectJd && nextIngressJd && lastAspectJd < jd && jd < nextIngressJd) {
+      const endDate = new Date((nextIngressJd - 2440587.5) * 86400000);
+      textEl.textContent = `🌙 Луна без курса до ${endDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+      widget.querySelector('.status-dot').style.background = '#ff453a';
+    }
+  } catch (e) { console.error('[moon-voc]', e); }
 }
 
-// ---------- Ретроградный Меркурий ----------
+// ---------- Ретроградный Меркурий (v37) ----------
 async function checkMercuryRetrograde() {
   const widget = document.getElementById('mercury-retro');
   const textEl = document.getElementById('mercury-retro-text');
   if (!widget || !textEl) return;
 
-  const now = new Date();
-  const jd = swe.julday(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(), now.getUTCHours() + now.getUTCMinutes() / 60);
-  
-  const pos = swe.calc_ut(jd, swe.SE_MERCURY, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
-  const speed = pos[3];
+  widget.style.display = 'flex';
+  widget.querySelector('.status-dot').style.background = '#30d158';
+  textEl.textContent = '☿ Меркурий директный';
 
-  if (speed < 0) {
-    let endJd = jd;
-    for (let step = 1; step < 30; step++) {
-      const futureJd = jd + step;
-      const futurePos = swe.calc_ut(futureJd, swe.SE_MERCURY, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
-      if (futurePos[3] > 0) {
-        endJd = futureJd;
-        break;
+  try {
+    const now = new Date();
+    const jd = swe.julday(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(), now.getUTCHours() + now.getUTCMinutes() / 60);
+    const flag = (swe.SEFLG_SWIEPH ?? 2) | (swe.SEFLG_SPEED ?? 256);
+    const mercuryId = swe.SE_MERCURY ?? 2;
+    const speed = await calcPlanetSpeed(jd, mercuryId, flag);
+    console.log('[mercury-retro] speed =', speed);
+
+    if (Number.isFinite(speed) && speed < 0) {
+      let endJd = jd;
+      for (let step = 1; step < 30; step++) {
+        const futureJd = jd + step;
+        const futureSpeed = await calcPlanetSpeed(futureJd, mercuryId, flag);
+        if (futureSpeed > 0) { endJd = futureJd; break; }
       }
+      const endDate = new Date((endJd - 2440587.5) * 86400000);
+      textEl.textContent = `☿ Меркурий ретро до ${endDate.toLocaleDateString('ru-RU')}`;
+      widget.querySelector('.status-dot').style.background = '#ff9f0a';
     }
-    const endDate = new Date((endJd - 2440587.5) * 86400000);
-    textEl.textContent = `☿ Меркурий ретрограден до ${endDate.toLocaleDateString('ru-RU')}`;
-    widget.style.display = 'flex';
-  } else {
-    widget.style.display = 'none';
-  }
+  } catch (e) { console.error('[mercury-retro]', e); }
 }
 
-// ---------- Интерактивный туториал (Intro.js) ----------
 function startTutorial() {
-  if (typeof introJs === 'undefined') {
-    console.warn('[tutorial] Intro.js не загрузился');
-    return;
-  }
+  if (typeof introJs === 'undefined') return;
   introJs().setOptions({
     steps: [
-      {
-        intro: '<h3>Добро пожаловать в Astro Site! 🔮</h3><p style="margin:8px 0 0;">Короткий тур (30 секунд) покажет, как рассчитать карту и воспользоваться ИИ-разбором.</p>',
-      },
-      {
-        element: document.querySelector('#tour-modes'),
-        intro: '🎯 <b>12 методов расчёта.</b> Начните с «Натальной» — это базовая карта. Остальные: транзиты, соляр, синастрия, прогрессии, хорар, профекции, фирдарии, астрокатрография и др.',
-        position: 'bottom',
-      },
-      {
-        element: document.querySelector('#birth-form'),
-        intro: '📝 <b>Введите данные рождения.</b> Начните с города — координаты и часовой пояс подставятся автоматически.',
-        position: 'right',
-      },
-      {
-        element: document.querySelector('#house-system'),
-        intro: '🏠 <b>Система домов.</b> Плацидус — самый популярный. Для профессиональной работы попробуйте Кох или Целые знаки.',
-        position: 'right',
-      },
-      {
-        element: document.querySelector('#submit-btn'),
-        intro: '🚀 <b>Рассчитать.</b> Нажмите эту кнопку — карта построится с точностью NASA JPL (если файлы эфемерид загружены на сервер).',
-        position: 'top',
-      },
-      {
-        element: document.querySelector('#tour-toolbar'),
-        intro: '📤 <b>Экспорт и шаринг.</b> Скачивайте карту в SVG, PDF (с кириллицей) или копируйте ссылку с параметрами расчёта.',
-        position: 'bottom',
-      },
-      {
-        element: document.querySelector('#ai-analysis'),
-        intro: '🤖 <b>ИИ-разбор.</b> Один клик — и промпт с вашей картой скопирован. Откроется ChatGPT, куда можно вставить запрос и получить глубокий анализ.',
-        position: 'bottom',
-      },
-      {
-        element: document.querySelector('#interpretation'),
-        intro: '📖 <b>Интерпретация.</b> Здесь появится краткий разбор по системе Вронского — что значат планеты в знаках и домах.',
-        position: 'top',
-      },
+      { intro: '<h3>Добро пожаловать! 🔮</h3><p style="margin:8px 0 0;">Короткий тур (30 сек) покажет, как рассчитать карту.</p>' },
+      { element: document.querySelector('#tour-modes'), intro: '🎯 <b>13 методов.</b> Начните с «Натальной».', position: 'bottom' },
+      { element: document.querySelector('#birth-form'), intro: '📝 <b>Данные рождения.</b> Начните с города.', position: 'right' },
+      { element: document.querySelector('#house-system'), intro: '🏠 <b>Система домов.</b> Плацидус — популярный.', position: 'right' },
+      { element: document.querySelector('#submit-btn'), intro: '🚀 <b>Рассчитать.</b> Нажмите для построения карты.', position: 'top' },
+      { element: document.querySelector('#tour-toolbar'), intro: '📤 <b>Экспорт</b> в SVG, PDF, JSON.', position: 'bottom' },
+      { element: document.querySelector('#ai-analysis'), intro: '🤖 <b>ИИ-разбор.</b> Копирует промпт для ChatGPT.', position: 'bottom' },
+      { element: document.querySelector('#interpretation'), intro: '📖 <b>Интерпретация</b> по Вронскому.', position: 'top' },
     ],
-    showProgress: true,
-    showBullets: false,
-    exitOnOverlayClick: false,
-    exitOnEsc: true,
-    nextLabel: 'Далее →',
-    prevLabel: '← Назад',
-    doneLabel: 'Готово!',
-    skipLabel: 'Пропустить',
-    tooltipClass: 'custom-tooltip',
-    highlightClass: 'custom-highlight',
-  }).oncomplete(() => {
-    localStorage.setItem('astro_tutorial_done', '1');
-  }).onexit(() => {
-    localStorage.setItem('astro_tutorial_done', '1');
-  }).start();
+    showProgress: true, showBullets: false, exitOnOverlayClick: false,
+    nextLabel: 'Далее →', prevLabel: '← Назад', doneLabel: 'Готово!', skipLabel: 'Пропустить',
+    tooltipClass: 'custom-tooltip', highlightClass: 'custom-highlight',
+  }).oncomplete(() => localStorage.setItem('astro_tutorial_done', '1'))
+    .onexit(() => localStorage.setItem('astro_tutorial_done', '1'))
+    .start();
 }
-
 document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
-if (!localStorage.getItem('astro_tutorial_done')) {
-  setTimeout(() => { startTutorial(); }, 1000);
-}
+if (!localStorage.getItem('astro_tutorial_done')) setTimeout(startTutorial, 1000);
 
-// ---------- Восстановление из query ----------
 function restoreFromQuery() {
   const p = new URLSearchParams(location.search); if (!p.has('date')) return;
   document.getElementById('birth-date').value = p.get('date') || ''; document.getElementById('birth-time').value = p.get('time') || '';
@@ -884,7 +760,6 @@ function restoreFromQuery() {
   const mode = p.get('mode'); if (mode) { const tab = Array.from(tabs).find((t) => t.dataset.mode === mode); if (tab) tab.click(); }
 }
 
-// ---------- Основной обработчик ----------
 form.addEventListener('submit', async (e) => {
   e.preventDefault(); submitBtn.disabled = true; setStatus('Расчёт…');
   try {
@@ -893,19 +768,18 @@ form.addEventListener('submit', async (e) => {
     const utcB = localToUTC(b.year, b.month, b.day, b.hour, b.minute, b.tz);
     const latB = Number(document.getElementById('birth-lat').value); const lonB = Number(document.getElementById('birth-lon').value);
     const natal = await calculateChartData(utcB, latB, lonB);
-
     lastState = { mode: currentMode, birth: { date: document.getElementById('birth-date').value, time: document.getElementById('birth-time').value, tz: b.tz, lat: latB, lon: lonB }, chart: natal };
     saveHistory({ label: `${currentMode} · ${b.year}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`, date: new Date().toLocaleString('ru-RU'), birthDate: document.getElementById('birth-date').value, birthTime: document.getElementById('birth-time').value, birthTz: b.tz, birthLat: latB, birthLon: lonB });
 
-    // Скрываем карту мира по умолчанию
     acgContainer.classList.add('hidden');
+    chartContainer.classList.remove('hidden');
 
     if (currentMode === 'natal') { renderSingle(natal); showInterpretation('Натальная карта', interpretNatal(natal.planets, natal.cusps)); setStatus('Готово.'); }
     else if (currentMode === 'transit') {
       const [y,m,d] = document.getElementById('event-date').value.split('-').map(Number); const [h,mi] = document.getElementById('event-time').value.split(':').map(Number);
       const tr = await calculateChartData({ year:y, month:m, day:d, hour:h, minute:mi }, latB, lonB);
       const ok = renderBiWheel(natal, tr); if (!ok) renderSingle(natal);
-      showInterpretation('Транзиты', ['Нажмите 🤖 ИИ-разбор для деталей.']); setStatus(ok ? 'Готово.' : 'Карта.');
+      showInterpretation('Транзиты', ['Нажмите 🤖 ИИ-разбор.']); setStatus(ok ? 'Готово.' : 'Карта.');
     }
     else if (currentMode === 'solar') {
       const [y,m,d] = document.getElementById('event-date').value.split('-').map(Number);
@@ -933,8 +807,8 @@ form.addEventListener('submit', async (e) => {
       const partner = await calculateChartData(utcP, Number(document.getElementById('partner-lat').value), Number(document.getElementById('partner-lon').value));
       const dav = await calculateDavison(natal, partner, latB, lonB, Number(document.getElementById('partner-lat').value), Number(document.getElementById('partner-lon').value));
       renderSingle(dav);
-      chartTitle.textContent = `Карта Дэвисона (Среднее время/место)`;
-      showInterpretation('Карта Дэвисона', ['Это профессиональный метод синастрии. Нажмите 🤖 ИИ-разбор для анализа.']); setStatus('Готово.');
+      chartTitle.textContent = `Карта Дэвисона`;
+      showInterpretation('Карта Дэвисона', ['Нажмите 🤖 ИИ-разбор.']); setStatus('Готово.');
     }
     else if (currentMode === 'directions') {
       const [y,m,d] = document.getElementById('event-date').value.split('-').map(Number);
@@ -944,7 +818,7 @@ form.addEventListener('submit', async (e) => {
     else if (currentMode === 'horary') {
       const now = new Date(); const utcH = { year:now.getUTCFullYear(), month:now.getUTCMonth()+1, day:now.getUTCDate(), hour:now.getUTCHours(), minute:now.getUTCMinutes() };
       const hChart = await calculateChartData(utcH, latB, lonB); renderSingle(hChart);
-      const lines = [`Вопрос: «${document.getElementById('horary-question').value}»`, `Судья: Луна и управитель 1-го дома.`]; showInterpretation('Хорар', lines); setStatus('Готово.');
+      const lines = [`Вопрос: «${document.getElementById('horary-question').value}»`]; showInterpretation('Хорар', lines); setStatus('Готово.');
     }
     else if (currentMode === 'monthly') {
       const evD = document.getElementById('event-date').value;
@@ -954,26 +828,20 @@ form.addEventListener('submit', async (e) => {
     else if (currentMode === 'profection') {
       const currentYear = new Date().getFullYear();
       const birthYear = new Date(document.getElementById('birth-date').value).getFullYear();
-      const age = currentYear - birthYear;
-      renderSingle(natal);
-      showInterpretation('Профекции', interpretProfection(natal, age)); setStatus('Готово.');
+      renderSingle(natal); showInterpretation('Профекции', interpretProfection(natal, currentYear - birthYear)); setStatus('Готово.');
     }
     else if (currentMode === 'firdaria') {
       const currentYear = new Date().getFullYear();
       const birthYear = new Date(document.getElementById('birth-date').value).getFullYear();
-      const age = currentYear - birthYear;
-      renderSingle(natal);
-      showInterpretation('Фирдарии', interpretFirdaria(natal, age)); setStatus('Готово.');
+      renderSingle(natal); showInterpretation('Фирдарии', interpretFirdaria(natal, currentYear - birthYear)); setStatus('Готово.');
     }
     else if (currentMode === 'acg') {
       chartContainer.classList.add('hidden');
-      await renderAcg(natal);
-      setStatus('Астрокатрография построена.');
+      await renderAcg(natal); setStatus('Астрокатрография построена.');
     }
   } catch (err) { console.error(err); setStatus(err.message || 'Ошибка.', true); } finally { submitBtn.disabled = false; }
 });
 
-// ---------- Инициализация ----------
 (async () => {
   await initEngine();
   await checkMercuryRetrograde();
