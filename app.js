@@ -341,7 +341,7 @@ async function calculateDavison(A, B, latA, lonA, latB, lonB) {
   return { ...data, jd: jdD };
 }
 
-// ---------- Транзиты месяца (восстановлено!) ----------
+// ---------- Транзиты месяца ----------
 async function monthlyTransits(natal, startDate, days, lat, lon) {
   const events = [];
   const start = new Date(startDate);
@@ -573,6 +573,80 @@ document.getElementById('today-horoscope').addEventListener('click', async () =>
   showInterpretation('Гороскоп на сегодня', lines);
 });
 
+// ---------- Интерактивный туториал (Intro.js) ----------
+function startTutorial() {
+  if (typeof introJs === 'undefined') {
+    console.warn('[tutorial] Intro.js не загрузился');
+    return;
+  }
+  introJs().setOptions({
+    steps: [
+      {
+        intro: '<h3>Добро пожаловать в Astro Site! 🔮</h3><p style="margin:8px 0 0;">Короткий тур (30 секунд) покажет, как рассчитать карту и воспользоваться ИИ-разбором.</p>',
+      },
+      {
+        element: document.querySelector('#tour-modes'),
+        intro: '🎯 <b>12 методов расчёта.</b> Начните с «Натальной» — это базовая карта. Остальные: транзиты, соляр, синастрия, прогрессии, хорар, профекции, фирдарии и др.',
+        position: 'bottom',
+      },
+      {
+        element: document.querySelector('#birth-form'),
+        intro: '📝 <b>Введите данные рождения.</b> Начните с города — координаты и часовой пояс подставятся автоматически. Если города нет в базе, введите широту и долготу вручную.',
+        position: 'right',
+      },
+      {
+        element: document.querySelector('#house-system'),
+        intro: '🏠 <b>Система домов.</b> Плацидус — самый популярный. Для профессиональной работы попробуйте Кох или Целые знаки.',
+        position: 'right',
+      },
+      {
+        element: document.querySelector('#submit-btn'),
+        intro: '🚀 <b>Рассчитать.</b> Нажмите эту кнопку — карта построится с точностью NASA JPL (если файлы эфемерид загружены на сервер).',
+        position: 'top',
+      },
+      {
+        element: document.querySelector('#tour-toolbar'),
+        intro: '📤 <b>Экспорт и шаринг.</b> Скачивайте карту в SVG, PDF (с кириллицей) или копируйте ссылку с параметрами расчёта.',
+        position: 'bottom',
+      },
+      {
+        element: document.querySelector('#ai-analysis'),
+        intro: '🤖 <b>ИИ-разбор.</b> Один клик — и промпт с вашей картой скопирован. Откроется ChatGPT, куда можно вставить запрос и получить глубокий анализ.',
+        position: 'bottom',
+      },
+      {
+        element: document.querySelector('#interpretation'),
+        intro: '📖 <b>Интерпретация.</b> Здесь появится краткий разбор по системе Вронского — что значат планеты в знаках и домах.',
+        position: 'top',
+      },
+    ],
+    showProgress: true,
+    showBullets: false,
+    exitOnOverlayClick: false,
+    exitOnEsc: true,
+    nextLabel: 'Далее →',
+    prevLabel: '← Назад',
+    doneLabel: 'Готово!',
+    skipLabel: 'Пропустить',
+    tooltipClass: 'custom-tooltip',
+    highlightClass: 'custom-highlight',
+  }).oncomplete(() => {
+    localStorage.setItem('astro_tutorial_done', '1');
+  }).onexit(() => {
+    localStorage.setItem('astro_tutorial_done', '1');
+  }).start();
+}
+
+// Кнопка «?» в шапке
+document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
+
+// Автозапуск при первом визите
+if (!localStorage.getItem('astro_tutorial_done')) {
+  setTimeout(() => {
+    startTutorial();
+  }, 1000);
+}
+
 // ---------- Восстановление из query ----------
 function restoreFromQuery() {
   const p = new URLSearchParams(location.search); if (!p.has('date')) return;
@@ -663,4 +737,5 @@ form.addEventListener('submit', async (e) => {
   } catch (err) { console.error(err); setStatus(err.message || 'Ошибка.', true); } finally { submitBtn.disabled = false; }
 });
 
+// ---------- Инициализация ----------
 renderHistory(); restoreFromQuery();

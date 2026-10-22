@@ -1,3 +1,6 @@
+/* ============================================================
+   Темы
+   ============================================================ */
 html,
 html[data-theme="dark"] {
   --bg: #000000;
@@ -126,9 +129,7 @@ input[type="color"] {
   height: 32px;
   background: none;
 }
-input[type="color"]::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
 input[type="color"]::-webkit-color-swatch {
   border: none;
   border-radius: 50%;
@@ -184,7 +185,7 @@ h3 {
 }
 h3:first-of-type { margin-top: 8px; }
 
-/* ---------- Вкладки (Сетка для 12 режимов) ---------- */
+/* ---------- Вкладки (сетка 4×3) ---------- */
 .mode-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -220,9 +221,7 @@ h3:first-of-type { margin-top: 8px; }
   font-weight: 600;
 }
 @media (max-width: 480px) {
-  .mode-tabs {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .mode-tabs { grid-template-columns: repeat(3, 1fr); }
   .tab { font-size: 11px; padding: 8px 2px; }
 }
 
@@ -516,4 +515,94 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/* ============================================================
+   Intro.js — кастомизация под тему сайта
+   ============================================================ */
+.introjs-tooltip {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border-radius: 12px;
+  border: 1px solid var(--separator);
+  padding: 16px;
+  max-width: 340px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.introjs-tooltip h3 {
+  color: var(--text);
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.introjs-tooltip b { color: var(--accent); }
+
+.introjs-arrow { border-color: var(--bg-secondary) !important; }
+.introjs-arrow.top { border-bottom-color: var(--bg-secondary) !important; }
+.introjs-arrow.bottom { border-top-color: var(--bg-secondary) !important; }
+.introjs-arrow.left { border-right-color: var(--bg-secondary) !important; }
+.introjs-arrow.right { border-left-color: var(--bg-secondary) !important; }
+
+.introjs-button {
+  background: var(--fill-secondary);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-shadow: none;
+}
+.introjs-button:hover {
+  background: var(--fill-primary);
+  color: var(--text);
+}
+.introjs-nextbutton,
+.introjs-donebutton {
+  background: var(--accent) !important;
+  color: var(--accent-text) !important;
+  font-weight: 600;
+}
+.introjs-nextbutton:hover,
+.introjs-donebutton:hover {
+  opacity: 0.9;
+}
+.introjs-skipbutton {
+  color: var(--text-secondary);
+  font-size: 20px;
+  padding: 4px 8px;
+}
+.introjs-progress {
+  background: var(--fill-secondary);
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+.introjs-progressbar {
+  background: var(--accent);
+  border-radius: 2px;
+}
+.introjs-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+.introjs-helperLayer {
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.4), 0 0 30px rgba(0,0,0,0.6);
+}
+.introjs-tooltipReferenceLayer { font-family: inherit; }
+
+/* Светлая тема для Intro.js */
+html[data-theme="light"] .introjs-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+html[data-theme="light"] .introjs-helperLayer {
+  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.4), 0 0 30px rgba(0,0,0,0.3);
+}
+html[data-theme="light"] .introjs-tooltip {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
 }
