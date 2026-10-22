@@ -96,6 +96,32 @@ body {
   line-height: 1.3;
 }
 
+/* Индикаторы статуса */
+.status-widget {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--fill-secondary);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  cursor: default;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+@media (max-width: 700px) {
+  .status-widget {
+    display: none !important;
+  }
+}
+
 /* Кнопка темы и выбор цвета */
 .theme-btn {
   flex-shrink: 0;
@@ -185,7 +211,7 @@ h3 {
 }
 h3:first-of-type { margin-top: 8px; }
 
-/* ---------- Вкладки (сетка 4×3) ---------- */
+/* ---------- Вкладки (сетка 4×N) ---------- */
 .mode-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -500,6 +526,14 @@ kbd {
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.9em;
+}
+
+/* ---------- Карта мира (ACG) ---------- */
+#acg-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 0.5px solid var(--separator);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* ---------- Мобильная адаптация ---------- */

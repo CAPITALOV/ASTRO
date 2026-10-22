@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="style.css?v=33" />
+  <link rel="stylesheet" href="style.css?v=34" />
   <!-- Intro.js CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css">
+  <!-- MapLibre GL CSS -->
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <title>Астрология — карты, хорар, транзиты</title>
 </head>
 <body>
@@ -15,12 +17,21 @@
     <div class="header-top">
       <h1>Астрология</h1>
       <div style="display:flex; gap:8px; align-items:center;">
+        <!-- Индикаторы -->
+        <div id="mercury-retro" class="status-widget" style="display: none;">
+          <span class="status-dot" style="background: #ff9f0a;"></span>
+          <span id="mercury-retro-text">Меркурий ретрограден</span>
+        </div>
+        <div id="moon-voc" class="status-widget" style="display: none;">
+          <span class="status-dot" style="background: #ff453a;"></span>
+          <span id="moon-voc-text">Луна без курса</span>
+        </div>
         <button type="button" id="tutorial-btn" class="theme-btn" aria-label="Запустить обучение" title="Обучение">?</button>
         <input type="color" id="accent-color" value="#d4a017" style="width:32px;height:32px;border:none;border-radius:50%;background:none;cursor:pointer;" title="Акцентный цвет" />
         <button type="button" id="theme-toggle" class="theme-btn" aria-label="Переключить тему">🌙</button>
       </div>
     </div>
-    <p class="subtitle">Swiss Ephemeris (JPL) · 12 методов · Профекции · Фирдарии · Дэвисон · Гороскоп на сегодня</p>
+    <p class="subtitle">Swiss Ephemeris (JPL) · 12 методов · Астрокатрография · Луна без курса · Ретро-Меркурий</p>
   </header>
 
   <main class="layout">
@@ -40,6 +51,7 @@
         <button type="button" class="tab" data-mode="profection">Профекции</button>
         <button type="button" class="tab" data-mode="firdaria">Фирдарии</button>
         <button type="button" class="tab" data-mode="davison">Дэвисон</button>
+        <button type="button" class="tab" data-mode="acg">Карта мира</button>
       </div>
 
       <form id="birth-form">
@@ -145,6 +157,8 @@
       <div id="chart-container" class="chart-container">
         <p class="placeholder">Выберите режим и нажмите «Рассчитать».</p>
       </div>
+      <!-- Контейнер для карты мира -->
+      <div id="acg-container" class="hidden" style="height: 600px; width: 100%; border-radius: 16px; overflow: hidden; margin-top: 16px;"></div>
       <div id="interpretation" class="interpretation hidden"></div>
     </section>
   </main>
@@ -176,9 +190,11 @@
   <script src="https://cdn.jsdelivr.net/npm/tz-lookup@6.1.24/tz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.0/dist/svg2pdf.umd.min.js"></script>
-  <!-- Intro.js JS -->
+  <!-- Intro.js -->
   <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+  <!-- MapLibre GL -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-  <script type="module" src="app.js?v=33"></script>
+  <script type="module" src="app.js?v=34"></script>
 </body>
 </html>
