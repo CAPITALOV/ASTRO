@@ -192,7 +192,6 @@ async function loadJPL() {
       setStatus('Загрузка файлов Swiss Ephemeris (JPL)…');
       const files = ['sepl_18.se1', 'semo_18.se1'];
       
-      // ИСПРАВЛЕНИЕ: получаем FS через SweModule
       const fs = (swe.SweModule && swe.SweModule.FS) || swe.FS || (swe.Module && swe.Module.FS);
       if (!fs || typeof fs.writeFile !== 'function') {
         throw new Error('Не найден FS API для записи файлов');
@@ -379,16 +378,36 @@ function generateAIPrompt(mode, data) {
   return lines.join('\n');
 }
 
+// ---------- Модальное окно ИИ ----------
 document.getElementById('ai-analysis').addEventListener('click', async () => {
   if (!lastState) return setStatus('Сначала постройте карту.', true);
   const prompt = generateAIPrompt(lastState.mode, lastState.chart);
+  
+  document.getElementById('ai-prompt-text').value = prompt;
+  document.getElementById('ai-modal').classList.remove('hidden');
+  
   try {
     await navigator.clipboard.writeText(prompt);
-    setStatus('Запрос для ИИ скопирован! Открываем ChatGPT...');
-    window.open('https://chatgpt.com/', '_blank');
-  } catch (e) {
-    prompt('Скопируйте запрос:', prompt);
+    setStatus('Промпт скопирован. Вставьте его в ChatGPT.');
+  } catch (_) {
+    setStatus('Скопируйте промпт из окна вручную.');
   }
+});
+
+document.getElementById('ai-copy-again').addEventListener('click', async () => {
+  const txt = document.getElementById('ai-prompt-text').value;
+  try {
+    await navigator.clipboard.writeText(txt);
+    setStatus('Скопировано.');
+  } catch (_) { alert('Не удалось скопировать. Выделите текст вручную.'); }
+});
+
+document.getElementById('ai-open-chatgpt').addEventListener('click', () => {
+  window.open('https://chatgpt.com/', '_blank');
+});
+
+document.getElementById('ai-close').addEventListener('click', () => {
+  document.getElementById('ai-modal').classList.add('hidden');
 });
 
 // ---------- Интерпретации на сайте (Краткие) ----------

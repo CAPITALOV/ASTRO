@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="style.css?v=28" />
+  <link rel="stylesheet" href="style.css?v=29" />
   <title>Астрология — карты, хорар, транзиты</title>
 </head>
 <body>
@@ -143,6 +143,20 @@
     </p>
   </footer>
 
+  <!-- МОДАЛЬНОЕ ОКНО ИИ -->
+  <div id="ai-modal" class="ai-modal hidden">
+    <div class="ai-modal-content">
+      <h3>Запрос для ИИ готов</h3>
+      <p class="hint">Промпт скопирован в буфер обмена. Откройте ChatGPT и вставьте его (<kbd>Ctrl+V</kbd> или долгое нажатие → «Вставить»).</p>
+      <textarea id="ai-prompt-text" readonly></textarea>
+      <div class="ai-modal-actions">
+        <button type="button" id="ai-copy-again" class="tool-btn">Копировать ещё раз</button>
+        <button type="button" id="ai-open-chatgpt" class="tool-btn" style="background: var(--accent); color: #111;">Открыть ChatGPT</button>
+        <button type="button" id="ai-close" class="tool-btn">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@astrodraw/astrochart@3.0.2/dist/astrochart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/moment-timezone@0.5.43/builds/moment-timezone-with-data.min.js"></script>
@@ -150,6 +164,6 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@2.2.0/dist/svg2pdf.umd.min.js"></script>
 
-  <script type="module" src="app.js?v=28"></script>
+  <script type="module" src="app.js?v=29"></script>
 </body>
 </html>

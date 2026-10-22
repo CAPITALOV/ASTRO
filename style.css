@@ -415,6 +415,57 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
 .site-footer a { color: var(--accent); text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
 
+/* ---------- Модальное окно ИИ ---------- */
+.ai-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ai-modal-content {
+  background: var(--bg-secondary);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ai-modal-content h3 { margin: 0; font-size: 17px; }
+#ai-prompt-text {
+  flex: 1;
+  min-height: 200px;
+  max-height: 50vh;
+  padding: 12px;
+  background: var(--bg-input);
+  border: none;
+  border-radius: 10px;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.ai-modal-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+kbd {
+  background: var(--fill-secondary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
 @media (max-width: 480px) {
   body { font-size: 16px; }
   .site-header h1 { font-size: 20px; }
