@@ -179,7 +179,7 @@ async function initEngine() {
     if (typeof swe.initSwissEph !== 'function') throw new Error('Не найден initSwissEph.');
     await swe.initSwissEph();
     console.log('[swisseph] базовый движок инициализирован (Moshier)');
-    loadJPL().catch(() => {});
+    loadJPL().catch((e) => console.error('[swisseph] Фоновая ошибка JPL:', e));
     return swe;
   })();
   return engineInitPromise;
@@ -191,17 +191,32 @@ async function loadJPL() {
     try {
       setStatus('Загрузка файлов Swiss Ephemeris (JPL)…');
       const files = ['sepl_18.se1', 'semo_18.se1'];
+      
+      // ИСПРАВЛЕНИЕ: получаем FS через SweModule
+      const fs = (swe.SweModule && swe.SweModule.FS) || swe.FS || (swe.Module && swe.Module.FS);
+      if (!fs || typeof fs.writeFile !== 'function') {
+        throw new Error('Не найден FS API для записи файлов');
+      }
+
       for (const filename of files) {
         const res = await fetch(`ephe/${filename}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${filename}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status} при загрузке ${filename}`);
         const data = new Uint8Array(await res.arrayBuffer());
-        if (typeof swe.FS_createDataFile === 'function') swe.FS_createDataFile('/', filename, data, true, true);
-        else if (swe.FS && typeof swe.FS.writeFile === 'function') swe.FS.writeFile(filename, data);
+        fs.writeFile(`/${filename}`, data);
+        console.log(`[swisseph] Файл ${filename} записан в память (${(data.length / 1024).toFixed(1)} КБ)`);
       }
+      
       if (typeof swe.set_ephe_path === 'function') swe.set_ephe_path('/');
+      else if (typeof swe.swe_set_ephe_path === 'function') swe.swe_set_ephe_path('/');
+      
       jplLoaded = true;
+      console.log('[swisseph] ✅ Точность JPL успешно активирована');
       setStatus('Точность JPL активирована.');
-    } catch (e) { setStatus('Ошибка JPL, используется Moshier.', true); }
+    } catch (e) {
+      console.warn('[swisseph] ❌ Ошибка загрузки JPL:', e.message);
+      setStatus('Ошибка JPL, используется Moshier.', true);
+      jplLoaded = false;
+    }
   })();
   return jplLoadPromise;
 }
@@ -240,11 +255,12 @@ async function calcPlanetLongitude(jd, pc, flag) {
   return extractLongitude(pos);
 }
 
-// ---------- Расчёт карты (с выбором системы домов) ----------
+// ---------- Расчёт карты ----------
 async function calculateChartData(utc, lat, lon) {
   await initEngine(); await loadJPL();
   const jd = swe.julday(utc.year, utc.month, utc.day, utc.hour + utc.minute / 60);
   const flag = jplLoaded ? (swe.SEFLG_SWIEPH ?? 2) : (swe.SEFLG_MOSEPH ?? 4);
+  console.log(`[swisseph] Расчёт на JD=${jd.toFixed(4)}, движок: ${jplLoaded ? 'JPL' : 'Moshier'}`);
 
   const planets = {};
   for (const { name, id, fallback } of PLANET_IDS) {
