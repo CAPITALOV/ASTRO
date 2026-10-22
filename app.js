@@ -561,8 +561,31 @@ async function calculateAcgLines(natalData) {
   return lines;
 }
 
+function isWebglSupported() {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl')));
+  } catch (e) {
+    return false;
+  }
+}
+
 function initAcgMap() {
   if (acgMap) return;
+
+  if (!isWebglSupported()) {
+    const container = document.getElementById('acg-container');
+    container.innerHTML = `
+      <div style="padding: 24px; text-align: center; color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+        <p><b>Карта мира недоступна.</b></p>
+        <p>Ваш браузер не поддерживает WebGL или аппаратное ускорение отключено.</p>
+        <p>Включите аппаратное ускорение в настройках браузера (<code>chrome://gpu</code>) или откройте сайт в другом браузере.</p>
+      </div>
+    `;
+    console.warn('[acg-map] WebGL не поддерживается — карта мира отключена');
+    return;
+  }
+
   acgMap = new maplibregl.Map({
     container: 'acg-container',
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
@@ -574,6 +597,10 @@ function initAcgMap() {
 async function renderAcg(natalData) {
   acgContainer.classList.remove('hidden');
   initAcgMap();
+  if (!acgMap) {
+    setStatus('Карта мира недоступна: WebGL отключён в браузере.', true);
+    return;
+  }
   await new Promise(resolve => setTimeout(resolve, 100));
   if (acgMap) acgMap.resize();
   const lines = await calculateAcgLines(natalData);

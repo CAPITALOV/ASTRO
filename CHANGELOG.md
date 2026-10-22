@@ -2,6 +2,25 @@
 
 Все значимые изменения проекта. Формат основан на [Keep a Changelog](https://keepachangelog.com/), версионирование — [SemVer](https://semver.org/).
 
+## [3.1.1] — 2026-10-23
+
+### 🎉 Polish Edition — патч к v3.1.0
+
+### Исправлено
+- **Вёрстка вкладок:** сетка переведена с 4 на 3 колонки, разрешён перенос текста (`white-space: normal`), уменьшены шрифт и отступы. Все 15 методов расчёта видны в панели без обрезки.
+- **Service Worker:** добавлен фильтр, пропускающий только HTTP(S) GET-запросы. Ошибка `Request scheme 'chrome-extension' is unsupported` больше не появляется в консоли. Кэш `astro-v6`.
+- **Репозиторий:** удалены `package.json`, `composer.json`, `composer.phar` и служебная папка `.config/`. Добавлены в `.gitignore`. В репозитории осталось ровно 13 файлов.
+
+### Изменено
+- `CACHE = 'astro-v6'` в `sw.js` (было `astro-v5`).
+- Регистрация Service Worker с параметром версии: `sw.js?v=6`.
+- Версия `style.css?v=40`, `app.js?v=39`.
+
+### Удалено
+- `composer.json`, `composer.phar`, `package.json`, `.config/` — не относятся к статическому сайту.
+
+---
+
 ## [3.1.0] — 2026-10-22
 
 ### 🎉 Calendar & PWA Edition

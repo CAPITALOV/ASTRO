@@ -1,34 +1,4 @@
-nano app.js
-nano style.css
-nano sw.js
-nano manifest.json
-
-# Проверьте версии
-echo "=== index.html ===" && grep -E "style\.css\?v=|app\.js\?v=|sw\.js\?v=" index.html
-echo "=== sw.js ===" && head -1 sw.js
-
-# Убедитесь, что нет мусора
-rm -f package.json .*.swp
-
-# Запушьте
-git add index.html app.js style.css sw.js manifest.json
-git commit -m "Fix: mode-tabs wrapping, SW v6, cache astro-v6"
-git pushnano app.js
-nano style.css
-nano sw.js
-nano manifest.json
-
-# Проверьте версии
-echo "=== index.html ===" && grep -E "style\.css\?v=|app\.js\?v=|sw\.js\?v=" index.html
-echo "=== sw.js ===" && head -1 sw.js
-
-# Убедитесь, что нет мусора
-rm -f package.json .*.swp
-
-# Запушьте
-git add index.html app.js style.css sw.js manifest.json
-git commit -m "Fix: mode-tabs wrapping, SW v6, cache astro-v6"
-git push<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
@@ -219,11 +189,11 @@ git push<!DOCTYPE html>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=6').catch((e) => console.warn('SW:', e));
+        navigator.serviceWorker.register('sw.js?v=7').catch((e) => console.warn('SW:', e));
       });
     }
   </script>
 
-  <script type="module" src="app.js?v=39"></script>
+  <script type="module" src="app.js?v=40"></script>
 </body>
 </html>

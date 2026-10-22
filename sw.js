@@ -1,4 +1,4 @@
-const CACHE = 'astro-v6';
+const CACHE = 'astro-v7';
 const ASSETS = [
   '/',
   '/index.html',
