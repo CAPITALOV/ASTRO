@@ -1,0 +1,23 @@
+{
+  "name": "astro-site",
+  "private": true,
+  "version": "20.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@swisseph/browser": "^1.4.0",
+    "@astrodraw/astrochart": "^3.0.2",
+    "moment-timezone": "^0.5.43",
+    "jspdf": "^2.5.1",
+    "svg2pdf.js": "^2.2.0",
+    "tz-lookup": "^6.1.25"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-pwa": "^0.20.0"
+  }
+}

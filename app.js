@@ -783,7 +783,7 @@ document.getElementById('export-json').addEventListener('click', () => { if (!la
 document.getElementById('import-json').addEventListener('click', () => document.getElementById('import-json-file').click());
 document.getElementById('import-json-file').addEventListener('change', (e) => { const f = e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (data.birth) { document.getElementById('birth-date').value = data.birth.date || ''; document.getElementById('birth-time').value = data.birth.time || ''; document.getElementById('birth-timezone').value = data.birth.tz || ''; document.getElementById('birth-lat').value = data.birth.lat || ''; document.getElementById('birth-lon').value = data.birth.lon || ''; } setStatus('JSON импортирован.'); } catch (err) { alert('Ошибка JSON'); } }; reader.readAsText(f); });
 
-// ---------- Гороскоп на сегодня ----------
+// Кнопка "На сегодня"
 document.getElementById('today-horoscope').addEventListener('click', async () => {
   if (!lastState) return setStatus('Сначала постройте натальную карту.', true);
   const b = lastState.birth;
@@ -792,7 +792,8 @@ document.getElementById('today-horoscope').addEventListener('click', async () =>
   const utcNow = { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate(), hour: 12, minute: 0 };
   const transit = await calculateChartData(utcNow, b.lat, b.lon);
   const dateStr = now.toLocaleDateString('ru-RU');
-  showInterpretation('Гороскоп на сегодня', interpretToday(natal, transit, dateStr));
+  const lines = interpretToday(natal, transit, dateStr);
+  showInterpretation('Гороскоп на сегодня', lines);
 });
 
 // ---------- Луна без курса ----------
@@ -917,7 +918,6 @@ form.addEventListener('submit', async (e) => {
     const utcB = localToUTC(b.year, b.month, b.day, b.hour, b.minute, b.tz);
     const latB = Number(document.getElementById('birth-lat').value); const lonB = Number(document.getElementById('birth-lon').value);
 
-    // Календари не требуют натальной карты
     if (currentMode === 'retro') {
       chartContainer.classList.remove('hidden');
       acgContainer.classList.add('hidden');

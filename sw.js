@@ -1,4 +1,4 @@
-const CACHE = 'astro-v5';
+const CACHE = 'astro-v6';
 const ASSETS = [
   '/',
   '/index.html',
@@ -24,17 +24,10 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Кэшируем только обычные HTTP(S) GET-запросы.
-  // Пропускаем chrome-extension://, moz-extension://, data:, blob:, file:
-  // и любые не-GET методы — иначе Cache API выбрасывает TypeError.
   if (e.request.method !== 'GET') return;
 
   let url;
-  try {
-    url = new URL(e.request.url);
-  } catch (_) {
-    return;
-  }
+  try { url = new URL(e.request.url); } catch (_) { return; }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
@@ -43,11 +36,9 @@ self.addEventListener('fetch', (e) => {
       if (cached) return cached;
       return fetch(e.request)
         .then((resp) => {
-          // Кэшируем только успешные ответы
           if (resp.ok && resp.type === 'basic') {
             const clone = resp.clone();
             caches.open(CACHE).then((c) => {
-              // Страховка: put() может упасть на неподдерживаемых запросах
               c.put(e.request, clone).catch(() => {});
             });
           }

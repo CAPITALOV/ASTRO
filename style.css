@@ -243,10 +243,10 @@ h3 {
 }
 h3:first-of-type { margin-top: 8px; }
 
-/* ---------- Вкладки (сетка 4×N) ---------- */
+/* ---------- Вкладки (адаптивная сетка, текст переносится) ---------- */
 .mode-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   padding: 4px;
   background: var(--fill-secondary);
@@ -254,22 +254,25 @@ h3:first-of-type { margin-top: 8px; }
   margin-bottom: 16px;
 }
 .tab {
-  padding: 8px 4px;
+  padding: 6px 4px;
   border: none;
   border-radius: 7px;
   background: transparent;
   color: var(--text);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: -0.2px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2;
   text-align: center;
   transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  word-break: break-word;
+  min-height: 32px;
 }
 .tab:active { transform: scale(0.96); }
 .tab.active {
@@ -278,9 +281,9 @@ h3:first-of-type { margin-top: 8px; }
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
   font-weight: 600;
 }
+
 @media (max-width: 480px) {
-  .mode-tabs { grid-template-columns: repeat(3, 1fr); }
-  .tab { font-size: 11px; padding: 8px 2px; }
+  .tab { font-size: 10px; padding: 6px 2px; min-height: 30px; }
 }
 
 /* ---------- Форма ---------- */

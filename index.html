@@ -1,4 +1,34 @@
-<!DOCTYPE html>
+nano app.js
+nano style.css
+nano sw.js
+nano manifest.json
+
+# Проверьте версии
+echo "=== index.html ===" && grep -E "style\.css\?v=|app\.js\?v=|sw\.js\?v=" index.html
+echo "=== sw.js ===" && head -1 sw.js
+
+# Убедитесь, что нет мусора
+rm -f package.json .*.swp
+
+# Запушьте
+git add index.html app.js style.css sw.js manifest.json
+git commit -m "Fix: mode-tabs wrapping, SW v6, cache astro-v6"
+git pushnano app.js
+nano style.css
+nano sw.js
+nano manifest.json
+
+# Проверьте версии
+echo "=== index.html ===" && grep -E "style\.css\?v=|app\.js\?v=|sw\.js\?v=" index.html
+echo "=== sw.js ===" && head -1 sw.js
+
+# Убедитесь, что нет мусора
+rm -f package.json .*.swp
+
+# Запушьте
+git add index.html app.js style.css sw.js manifest.json
+git commit -m "Fix: mode-tabs wrapping, SW v6, cache astro-v6"
+git push<!DOCTYPE html>
 <html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +40,7 @@
   <link rel="icon" href="data:," />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzBjMGQxNSIgcng9IjI4Ii8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRhMDE3IiBzdHJva2Utd2lkdGg9IjIiPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjYzIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNDIiLz48L2c+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNyIgZmlsbD0iI2Q0YTAxNyIvPjwvc3ZnPg==" />
-  <link rel="stylesheet" href="style.css?v=39" />
+  <link rel="stylesheet" href="style.css?v=40" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css">
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <title>Астрология — карты, хорар, транзиты</title>
@@ -189,7 +219,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=4').catch((e) => console.warn('SW:', e));
+        navigator.serviceWorker.register('sw.js?v=6').catch((e) => console.warn('SW:', e));
       });
     }
   </script>
