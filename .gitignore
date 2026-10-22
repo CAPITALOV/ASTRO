@@ -14,3 +14,8 @@ node_modules/
 
 
 ephe/
+.config/
+composer.json
+composer.phar
+package.json
+*.swp
